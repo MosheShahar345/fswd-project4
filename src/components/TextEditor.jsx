@@ -5,23 +5,43 @@ import EditControls from './EditControls';
 import VirtualKeyboard from './VirtualKeyboard';
 
 export default function TextEditor() {
-  // Holds the full styled character array
+  // The array of characters with styles
   const [text, setText] = useState([]);
 
-  // Keyboard modes
-  const [language, setLanguage] = useState('he'); // 'he' or 'en'
+  // Current style settings applied to new characters
+  const [currentStyle, setCurrentStyle] = useState({
+    color: '#000000',
+    fontSize: '16px',
+    fontFamily: 'Arial',
+  });
+
+  // Keyboard mode states
+  const [language, setLanguage] = useState('he');
   const [emojiMode, setEmojiMode] = useState(false);
   const [symbolMode, setSymbolMode] = useState(false);
-
-  // Show/hide the hover overlay for quick emojis
   const [emojiOverlayVisible, setEmojiOverlayVisible] = useState(false);
 
-  // For undo functionality
+  // Text history for undo support
   const [history, setHistory] = useState([]);
 
-  /**
-   * Add a character to the text with the current styling
-   */
+  // 'current' or 'all'
+  const [styleMode, setStyleMode] = useState('current');
+
+  const handleStyleChange = (style) => {
+    if (styleMode === 'current') {
+      setCurrentStyle(prev => ({ ...prev, ...style }));
+    } else {
+      // Apply style to all text
+      setText(prevText =>
+        prevText.map(char => ({
+          ...char,
+          style: { ...char.style, ...style }
+        }))
+      );
+      setCurrentStyle(prev => ({ ...prev, ...style }));
+    }
+  };
+
   const handleKeyPress = (char) => {
     const styledChar = { char, style: currentStyle };
     setHistory([...history, [...text]]);
@@ -29,9 +49,6 @@ export default function TextEditor() {
     setEmojiOverlayVisible(false);
   };
 
-  /**
-   * Delete the last character or word
-   */
   const handleDelete = (type) => {
     setHistory([...history, [...text]]);
     if (type === 'char') {
@@ -41,22 +58,16 @@ export default function TextEditor() {
       while (newText.length && newText[newText.length - 1].char !== ' ') {
         newText.pop();
       }
-      if (newText.length) newText.pop(); // Remove the space
+      if (newText.length) newText.pop(); // remove space
       setText(newText);
     }
   };
 
-  /**
-   * Clear the entire text
-   */
   const handleClear = () => {
     setHistory([...history, [...text]]);
     setText([]);
   };
 
-  /**
-   * Undo the last edit (if available)
-   */
   const handleUndo = () => {
     if (history.length > 0) {
       setText(history[history.length - 1]);
@@ -64,9 +75,6 @@ export default function TextEditor() {
     }
   };
 
-  /**
-   * Replace a specific character in the text
-   */
   const handleReplace = () => {
     const toFind = prompt('Enter character to replace:');
     const toReplace = prompt(`Replace "${toFind}" with:`);
@@ -77,9 +85,6 @@ export default function TextEditor() {
     setText(updated);
   };
 
-  /**
-   * Cycle between Hebrew and English (default keyboard mode)
-   */
   const cycleLanguage = () => {
     setLanguage((prev) => (prev === 'he' ? 'en' : 'he'));
   };
@@ -87,13 +92,18 @@ export default function TextEditor() {
   return (
     <div className="text-editor">
 
-      {/* Live preview of styled text */}
+      {/* Output area showing styled text */}
       <TextDisplay text={text} />
 
-      {/* Font / size / color toolbar */}
-      <Toolbar setStyle={(style) => setCurrentStyle({ ...currentStyle, ...style })} />
+      {/* Styling toolbar: font, size, color */}
+      <Toolbar
+        currentStyle={currentStyle}
+        setStyle={handleStyleChange}
+        currentMode={styleMode}
+        setStyleMode={setStyleMode}
+      />
 
-      {/* On-screen keyboard (language / emoji / symbol) */}
+      {/* Virtual keyboard with all modes */}
       <VirtualKeyboard
         language={language}
         emojiMode={emojiMode}
@@ -103,17 +113,21 @@ export default function TextEditor() {
         onCycleLanguage={cycleLanguage}
         onToggleEmojiMode={() => {
           setEmojiMode(!emojiMode);
-          setSymbolMode(false); // Only one mode at a time
+          setSymbolMode(false);
         }}
         onToggleSymbolMode={() => {
           setSymbolMode(!symbolMode);
-          setEmojiMode(false); // Only one mode at a time
+          setEmojiMode(false);
         }}
-        onHoverEmojiButton={() => setEmojiOverlayVisible(true)}
-        onLeaveEmojiButton={() => setEmojiOverlayVisible(false)}
+        onHoverEmojiButton={() => {
+          if (!emojiMode) setEmojiOverlayVisible(true);
+        }}
+        onLeaveEmojiButton={() => {
+          if (!emojiMode) setEmojiOverlayVisible(false);
+        }}
       />
 
-      {/* Clear, Delete, Undo, Replace controls */}
+      {/* Text editing operations */}
       <EditControls
         onDelete={handleDelete}
         onUndo={handleUndo}

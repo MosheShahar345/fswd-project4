@@ -97,7 +97,7 @@ export default function VirtualKeyboard(props) {
             )}
           </button>
 
-          {emojiOverlayVisible && (
+          {emojiOverlayVisible && !emojiMode && (
             <div className="emoji-overlay">
               {['😂','❤️','🔥','👍','🥲'].map((emoji, index) => (
                 <button
