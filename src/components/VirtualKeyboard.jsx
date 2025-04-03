@@ -35,7 +35,9 @@ export default function VirtualKeyboard(props) {
     onToggleEmojiMode,
     onToggleSymbolMode,
     onHoverEmojiButton,
-    onLeaveEmojiButton
+    onLeaveEmojiButton,
+    shiftMode,
+    onShiftClick
   } = props;
 
   const keys = emojiMode
@@ -61,15 +63,54 @@ export default function VirtualKeyboard(props) {
     rows.push(keys.slice(19));
   }
 
+  const renderRow = (row, rowIndex, isBottomRow, language) => {
+    const buttons = row.map((char, i) => {
+      const displayChar =
+        shiftMode !== 'off' && /^[a-zA-Z]$/.test(char)
+          ? char.toUpperCase()
+          : char;
+  
+      return (
+        <button
+          key={i}
+          onClick={() => {
+            onKeyPress(displayChar);
+            if (shiftMode === 'once') {
+              onShiftClick('single');
+            }
+          }}
+        >
+          {displayChar}
+        </button>
+      );
+    });
+  
+    if (isBottomRow && language === 'en') {
+      let shiftIcon = '⇧'; // default
+
+      if (shiftMode === 'locked') shiftIcon = '⇪';
+      else if (shiftMode === 'once') shiftIcon = '⬆';
+
+      buttons.unshift(
+        <button
+          key="shift"
+          className={shiftMode !== 'off' ? 'shift-active' : ''}
+          onClick={() => onShiftClick('single')}
+          onDoubleClick={() => onShiftClick('double')}
+        >
+          {shiftIcon}
+        </button>
+      );
+    }
+  
+    return <div key={rowIndex} className="keyboard-row">{buttons}</div>;
+  };
+
   return (
     <div className="keyboard">
-      {rows.map((row, rowIndex) => (
-        <div key={rowIndex} className="keyboard-row">
-          {row.map((char, i) => (
-            <button key={i} onClick={() => onKeyPress(char)}>{char}</button>
-          ))}
-        </div>
-      ))}
+      {rows.map((row, rowIndex) =>
+        renderRow(row, rowIndex, rowIndex === rows.length - 1, language)
+      )}
 
       <div className="keyboard-row">
         {!emojiMode && (

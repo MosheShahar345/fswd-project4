@@ -20,12 +20,43 @@ export default function TextEditor() {
   const [emojiMode, setEmojiMode] = useState(false);
   const [symbolMode, setSymbolMode] = useState(false);
   const [emojiOverlayVisible, setEmojiOverlayVisible] = useState(false);
+  const [shiftMode, setShiftMode] = useState('off'); // 'off' or 'once' or 'locked'
 
   // Text history for undo support
   const [history, setHistory] = useState([]);
 
+  // Search character
+  const [searchChar, setSearchChar] = useState(null);
+
   // 'current' or 'all'
   const [styleMode, setStyleMode] = useState('current');
+
+  const handleShiftClick = (type) => {
+    if (type === 'single') {
+      setShiftMode(prev => (prev === 'off' ? 'once' : 'off'));
+    } else if (type === 'double') {
+      setShiftMode(prev => (prev === 'locked' ? 'off' : 'locked'));
+    }
+  };
+
+  const handleSearch = () => {
+    const target = prompt('Enter character to search for:');
+    if (!target || target.length !== 1) return;
+  
+    const normalized = target.toLowerCase();
+    const hasMatch = text.some((item) => item.char.toLowerCase() === normalized);
+  
+    if (hasMatch) {
+      setSearchChar(normalized);
+    } else {
+      alert(`No matches found for "${target}"`);
+      setSearchChar(null);
+    }
+  };
+  
+  const handleClearSearch = () => {
+    setSearchChar(null);
+  };
 
   const handleStyleChange = (style) => {
     if (styleMode === 'current') {
@@ -93,7 +124,7 @@ export default function TextEditor() {
     <div className="text-editor">
 
       {/* Output area showing styled text */}
-      <TextDisplay text={text} />
+      <TextDisplay text={text} searchChar={searchChar} />
 
       {/* Styling toolbar: font, size, color */}
       <Toolbar
@@ -125,6 +156,8 @@ export default function TextEditor() {
         onLeaveEmojiButton={() => {
           if (!emojiMode) setEmojiOverlayVisible(false);
         }}
+        shiftMode={shiftMode}
+        onShiftClick={handleShiftClick}
       />
 
       {/* Text editing operations */}
@@ -133,6 +166,9 @@ export default function TextEditor() {
         onUndo={handleUndo}
         onReplace={handleReplace}
         onClear={handleClear}
+        onSearch={handleSearch}
+        onClearSearch={handleClearSearch}
+        isSearching={!!searchChar}
       />
     </div>
   );
