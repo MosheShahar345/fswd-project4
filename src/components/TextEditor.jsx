@@ -4,6 +4,7 @@ import Toolbar from './Toolbar';
 import LangSelector from './LangSelector';
 import EditControls from './EditControls';
 import TextDisplay from './TextDisplay';
+import StorageControls from './StorageControls';
 
 export default function TextEditor() {
   const [text, setText] = useState([]);
@@ -69,6 +70,7 @@ export default function TextEditor() {
         onReplace={handleReplace}
         onClear={handleClear}
       />
+      <StorageControls text={text} setText={setText} />
     </div>
   );
 }
