@@ -3,7 +3,7 @@ body {
     direction: rtl;
     padding: 20px;
     background-color: #f5f5f5;
-  }
+}
   
   .text-editor {
     max-width: 800px;
@@ -36,17 +36,5 @@ body {
   .selected {
     background-color: #007bff;
     color: white;
-  }
-  
-  .storage-controls {
-    margin-top: 10px;
-    display: flex;
-    gap: 8px;
-  }
-  .storage-controls input {
-    padding: 4px;
-  }
-  .storage-controls button {
-    padding: 4px 8px;
   }
   
